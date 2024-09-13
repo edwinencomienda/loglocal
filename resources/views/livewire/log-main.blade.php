@@ -24,7 +24,7 @@
                     open: true
                 }">
                     {{-- header part of the log --}}
-                    <div class="flex cursor-pointer justify-between bg-slate-800 py-1 hover:bg-slate-900"
+                    <div class="flex cursor-pointer select-none justify-between bg-slate-800 py-1 hover:bg-slate-900"
                         @click="open = !open">
                         <div class="flex items-center">
                             <div class="px-4 py-2 text-sm font-semibold">

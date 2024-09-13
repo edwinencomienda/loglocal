@@ -12,10 +12,17 @@ class LogMain extends Component
 
     public string $projectPath = '';
 
+    public string $filterLog = '';
+
     public function updatedProjectPath()
     {
         cache()->forget('projectPath');
         cache()->rememberForever('projectPath', fn () => $this->projectPath);
+    }
+
+    public function updatedFilterLog()
+    {
+        $this->getLogs();
     }
 
     public function mount()
@@ -42,6 +49,10 @@ class LogMain extends Component
         $groupedLogs = [];
         $groupedLogsIndex = -1;
         foreach ($logs as $log) {
+            if (! empty($this->filterLog) && ! str($log)->contains($this->filterLog)) {
+                continue;
+            }
+
             $pattern = '/^\[\d{4}-\d{2}-\d{2}/';
             $newLog = preg_match($pattern, $log);
             // sample start of a log '[2024-09-12 01:09:58] production.ERROR:' i want to split the timestamp, production and ERROR and put in the variable

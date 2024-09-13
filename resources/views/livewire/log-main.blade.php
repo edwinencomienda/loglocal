@@ -17,14 +17,15 @@
 
     <span wire:loading wire:target="getLogs">loading...</span>
 
-    <div class="mt-6 space-y-2">
+    <div class="mt-6 divide-y divide-gray-700 overflow-hidden rounded-lg">
         @foreach ($logs as $log)
             <div>
-                <div class="overflow-hidden rounded-lg bg-slate-700 text-gray-300" x-data="{
-                    open: true,
+                <div class="overflow-hidden bg-slate-700 text-gray-300" x-data="{
+                    open: true
                 }">
                     {{-- header part of the log --}}
-                    <div class="flex justify-between bg-slate-800 py-1">
+                    <div class="flex cursor-pointer justify-between bg-slate-800 py-1 hover:bg-slate-900"
+                        @click="open = !open">
                         <div class="flex items-center">
                             <div class="px-4 py-2 text-sm font-semibold">
                                 {{ $log['timestamp'] }}
@@ -41,7 +42,6 @@
                         </div>
                         <div class="flex items-center px-4">
                             <a class="cursor-pointer select-none rounded-lg p-1 hover:bg-slate-700"
-                                @click="open = !open"
                                 x-bind:class="{
                                     'rotate-180': open,
                                 }">

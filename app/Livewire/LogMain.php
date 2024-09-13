@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class LogMain extends Component
@@ -12,6 +13,7 @@ class LogMain extends Component
 
     public string $projectPath = '';
 
+    #[Url]
     public string $filterLog = '';
 
     public function updatedProjectPath()

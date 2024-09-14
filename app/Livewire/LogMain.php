@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -14,12 +15,19 @@ class LogMain extends Component
     public string $projectPath = '';
 
     #[Url]
+    public string $logFile = '';
+
+    #[Url]
     public string $filterLog = '';
 
     public function updatedProjectPath()
     {
         cache()->forget('projectPath');
         cache()->rememberForever('projectPath', fn () => $this->projectPath);
+
+        if (count($this->logFiles()) < 1) {
+            $this->js('$wire.logFile = null');
+        }
     }
 
     public function updatedFilterLog()
@@ -38,7 +46,23 @@ class LogMain extends Component
 
     public function logPath()
     {
-        return "{$this->projectPath}/storage/logs/laravel.log";
+        if (empty($this->logFile)) {
+            return "{$this->projectPath}/storage/logs/laravel.log";
+        }
+
+        return $this->logFile;
+    }
+
+    #[Computed]
+    public function logFiles()
+    {
+        return collect(glob("{$this->projectPath}/storage/logs/*.log"))
+            ->sort()
+            ->map(fn ($log) => [
+                'filename' => basename($log),
+                'path' => $log,
+            ])
+            ->toArray();
     }
 
     public function getLogs()

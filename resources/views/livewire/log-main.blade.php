@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-100/10" id="app-container" x-data x-init="setInterval(() => $wire.getLogs(), 2000)">
+<div class="min-h-screen bg-gray-100/10" id="app-container" x-data x-initg="setInterval(() => $wire.getLogs(), 2000);">
     <div class="p-6">
         <form class="flex w-full space-x-3" wire:submit.prevent="getLogs">
             <button wire:click="getLogs"
@@ -7,9 +7,12 @@
             </button>
             {{-- <input type="text" class="h-10 w-full rounded-md bg-gray-300 px-4"
                 wire:model.live.debounce.300ms="projectPath" placeholder="Project Path"> --}}
-            <x-form.input wire:model.live.debounce.300ms="projectPath" placeholder="Project Path" />
-            {{-- <input type="text" class="h-10 w-full rounded-md bg-gray-300 px-4"
-                wire:model.live.debounce.300ms="projectPath" placeholder="Project Path"> --}}
+            <x-form.input class="flex-1" wire:model.live.debounce.300ms="projectPath" placeholder="Project Path" />
+            <x-form.select class="flex-1" wire:model="logFile" x-on:change="$wire.getLogs()">
+                @foreach ($this->logFiles as $logFile)
+                    <option value="{{ $logFile['path'] }}">{{ $logFile['filename'] }}</option>
+                @endforeach
+            </x-form.select>
         </form>
 
         <div class="my-3">

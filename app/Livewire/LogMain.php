@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Illuminate\Support\LazyCollection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -47,7 +48,7 @@ class LogMain extends Component
     public function logPath()
     {
         if (empty($this->logFile)) {
-            return "{$this->projectPath}/storage/logs/laravel.log";
+            return data_get($this->logFiles(), '0.path');
         }
 
         return $this->logFile;
@@ -65,6 +66,41 @@ class LogMain extends Component
             ->toArray();
     }
 
+    public function getLastLines($file, $lines = 500)
+    {
+        if (! file_exists($file)) {
+            return false; // File does not exist
+        }
+
+        $handle = fopen($file, 'rb');
+        if ($handle === false) {
+            return false; // Cannot open file
+        }
+
+        $buffer = '';
+        $line_count = 0;
+
+        // Start from the end of the file
+        fseek($handle, 0, SEEK_END);
+        $filesize = ftell($handle);
+
+        for ($pos = $filesize - 1; $pos >= 0; $pos--) {
+            fseek($handle, $pos);
+            $char = fgetc($handle);
+            if ($char === "\n") {
+                $line_count++;
+                if ($line_count > $lines) {
+                    break;
+                }
+            }
+            $buffer = $char.$buffer;
+        }
+
+        fclose($handle);
+
+        return $buffer;
+    }
+
     public function getLogs()
     {
         $this->logs = [];
@@ -73,41 +109,51 @@ class LogMain extends Component
             return;
         }
 
-        $logs = file_get_contents($this->logPath());
-        $logs = explode("\n", $logs);
-
-        $newLog = false;
         $groupedLogs = [];
         $groupedLogsIndex = -1;
-        foreach ($logs as $log) {
-            if (! empty($this->filterLog) && ! str($log)->lower()->contains(strtolower($this->filterLog))) {
-                continue;
+        $pattern = '/^\[\d{4}-\d{2}-\d{2}/';
+
+        $counter = 0;
+        LazyCollection::make(function () use (&$counter, $pattern) {
+            $handle = fopen($this->logPath(), 'r');
+
+            while (($line = fgets($handle)) !== false) {
+                yield $line;
+
+                $newLog = preg_match($pattern, $line);
+                if ($newLog) {
+                    $counter++;
+                }
+
+                // if ($counter >= 3) {
+                //     break;
+                // }
             }
+        })
+            ->each(function ($lines) use (&$groupedLogs, &$groupedLogsIndex, $pattern) {
+                $newLog = preg_match($pattern, $lines);
+                if ($newLog) {
+                    [$env, $type] = str($lines)
+                        ->after(']')
+                        ->before(':')
+                        ->explode('.')
+                        ->map(fn ($v) => trim($v));
 
-            $pattern = '/^\[\d{4}-\d{2}-\d{2}/';
-            $newLog = preg_match($pattern, $log);
-            // sample start of a log '[2024-09-12 01:09:58] production.ERROR:' i want to split the timestamp, production and ERROR and put in the variable
-
-            if ($newLog) {
-                [$env, $type] = str($log)
-                    ->after(']')
-                    ->before(':')
-                    ->explode('.')
-                    ->map(fn ($v) => trim($v));
-
-                $groupedLogsIndex++;
-                $groupedLogs[$groupedLogsIndex]['timestamp'] = str($log)->betweenFirst('[', ']')->toString();
-                $groupedLogs[$groupedLogsIndex]['log'] = trim(str($log)->after("{$type}:"));
-                $groupedLogs[$groupedLogsIndex]['env'] = $env;
-                $groupedLogs[$groupedLogsIndex]['type'] = $type;
-                $newLog = false;
-            } else {
-                $groupedLogs[$groupedLogsIndex]['log'] .= "\n".trim($log);
-            }
-        }
+                    $groupedLogsIndex++;
+                    $groupedLogs[$groupedLogsIndex]['timestamp'] = str($lines)->betweenFirst('[', ']')->toString();
+                    $groupedLogs[$groupedLogsIndex]['log'] = trim(str($lines)->after("{$type}:"));
+                    $groupedLogs[$groupedLogsIndex]['env'] = $env;
+                    $groupedLogs[$groupedLogsIndex]['type'] = $type;
+                    $groupedLogs[$groupedLogsIndex]['lines'] = $lines;
+                } else {
+                    $groupedLogs[$groupedLogsIndex]['log'] .= "\n".trim($lines);
+                }
+            });
 
         $this->logs = collect($groupedLogs)
+            ->when($this->filterLog, fn ($logs) => $logs->filter(fn ($log) => str($log['log'])->lower()->contains(strtolower($this->filterLog))))
             ->reverse()
+            ->take(50)
             ->toArray();
     }
 

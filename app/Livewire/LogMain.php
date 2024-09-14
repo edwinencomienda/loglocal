@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -34,6 +35,11 @@ class LogMain extends Component
         }
 
         $this->getLogs();
+    }
+
+    public function logPath()
+    {
+        return "{$this->projectPath}/storage/logs/laravel.log";
     }
 
     public function getLogs()
@@ -80,6 +86,21 @@ class LogMain extends Component
         $this->logs = collect($groupedLogs)
             ->reverse()
             ->toArray();
+    }
+
+    function getLastLineNumber($filePath) {
+        $lineCount = 0;
+        $handle = fopen($filePath, 'r');
+    
+        if ($handle) {
+            while (fgets($handle) !== false) {
+                $lineCount++;
+            }
+    
+            fclose($handle);
+        }
+    
+        return $lineCount;
     }
 
     public function render()

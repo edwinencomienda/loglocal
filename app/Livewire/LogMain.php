@@ -56,7 +56,7 @@ class LogMain extends Component
         $groupedLogs = [];
         $groupedLogsIndex = -1;
         foreach ($logs as $log) {
-            if (! empty($this->filterLog) && ! str($log)->contains($this->filterLog)) {
+            if (! empty($this->filterLog) && ! str($log)->lower()->contains(strtolower($this->filterLog))) {
                 continue;
             }
 

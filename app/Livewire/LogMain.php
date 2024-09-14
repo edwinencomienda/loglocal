@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -46,11 +45,11 @@ class LogMain extends Component
     {
         $this->logs = [];
 
-        if (! file_exists($this->projectPath.'/storage/logs/laravel.log')) {
+        if (! file_exists($this->logPath())) {
             return;
         }
 
-        $logs = file_get_contents($this->projectPath.'/storage/logs/laravel.log');
+        $logs = file_get_contents($this->logPath());
         $logs = explode("\n", $logs);
 
         $newLog = false;
@@ -88,18 +87,19 @@ class LogMain extends Component
             ->toArray();
     }
 
-    function getLastLineNumber($filePath) {
+    public function getLastLineNumber($filePath)
+    {
         $lineCount = 0;
         $handle = fopen($filePath, 'r');
-    
+
         if ($handle) {
             while (fgets($handle) !== false) {
                 $lineCount++;
             }
-    
+
             fclose($handle);
         }
-    
+
         return $lineCount;
     }
 

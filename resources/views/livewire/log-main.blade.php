@@ -1,4 +1,11 @@
-<div class="min-h-screen bg-gray-100/10" id="app-container" x-data x-initg="setInterval(() => $wire.getLogs(), 2000);">
+<div class="min-h-screen bg-gray-100/10" id="app-container" x-data x-initg="setInterval(() => $wire.getLogs(), 2000);"
+    x-init="document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            console.log('Tab is not visible');
+        } else {
+            console.log('Tab is visible');
+        }
+    });">
     <div class="p-6">
         <form class="flex w-full space-x-3" wire:submit.prevent="getLogs">
             <button wire:click="getLogs"
@@ -85,4 +92,19 @@
             showSettings: false,
         })
     })
+</script>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        console.log('DOMContentLoaded')
+
+        window.addEventListener('blur', function() {
+            console.log('blur')
+        });
+
+        window.addEventListener('focus', function() {
+            console.log('focus');
+            // @this.getLogs();
+        });
+    });
 </script>

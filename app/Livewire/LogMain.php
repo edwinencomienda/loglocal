@@ -111,7 +111,7 @@ class LogMain extends Component
 
         $groupedLogs = [];
         $groupedLogsIndex = -1;
-        $pattern = '/^\[\d{4}-\d{2}-\d{2}/';
+        $pattern = '/^\[\d{4}-\d{2}-\d{2}/'; // checks if the line starts with a date pattern
 
         $counter = 0;
         LazyCollection::make(function () use (&$counter, $pattern) {

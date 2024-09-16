@@ -13,6 +13,7 @@ class LogMain extends Component
 
     public array $logs = [];
 
+    #[Url]
     public string $projectPath = '';
 
     #[Url]
@@ -23,9 +24,6 @@ class LogMain extends Component
 
     public function updatedProjectPath()
     {
-        cache()->forget('projectPath');
-        cache()->rememberForever('projectPath', fn () => $this->projectPath);
-
         if (count($this->logFiles()) < 1) {
             $this->js('$wire.logFile = null');
         }
@@ -38,10 +36,6 @@ class LogMain extends Component
 
     public function mount()
     {
-        if (cache()->has('projectPath')) {
-            $this->projectPath = cache()->get('projectPath');
-        }
-
         $this->getLogs();
     }
 
